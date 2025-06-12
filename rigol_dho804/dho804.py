@@ -1,7 +1,8 @@
 import subprocess
 from datetime import datetime
+import pyvisa
 
-class AdbCapturador:
+class AdbBridge:
     def __init__(self, ip_puerto):
         self.ip_puerto = ip_puerto
 
@@ -24,3 +25,26 @@ class AdbCapturador:
         """Verifica si el dispositivo sigue conectado."""
         resultado = subprocess.run(["adb", "devices"], capture_output=True, text=True)
         return self.ip_puerto.split(":")[0] in resultado.stdout
+    def adb_disconnect(self):
+        self.subprocess.run(["adb", "disconnect", self.ip_puerto], capture_output=True, text=True)
+
+class DHO804:
+    def __init__(self,ip,adbport):
+        self.ip = ip
+        self.adb_bridge = AdbBridge(ip + ':' + adbport)
+        self.rm = pyvisa.ResourceManager()       
+    def connect(self):
+        """Conecta interfaz ADB y SPCI"""
+        self.adb_bridge.conectar()
+        self.scpi_bridge = rm.open_resource(f'TCPIP::{ip}::INSTR')
+        self.scpi_bridge.write_termination = '\n'
+        self.scpi_bridge.read_termination = '\n'
+    def take_screenshot():
+        if (adb_bridge.esta_conectado()):
+            self.adb_bridge.tomar_captura()
+        else:
+            return 0
+    def close(self):
+        self.scpi_bridge.close()
+        self.rm.close()
+        self.adb_bridge.adb_disconnect()

@@ -20,12 +20,10 @@ rm = pyvisa.ResourceManager()
 
 # Conexión a los instrumentos
 generador = rm.open_resource('USB0::26198::2100::AWG1224410024::0::INSTR')
-osciloscopio = rm.open_resource('TCPIP::192.168.68.68::INSTR')
 
 # Configurar terminaciones
 generador.write_termination = '\n'
-osciloscopio.write_termination = '\n'
-osciloscopio.read_termination = '\n'
+
 
 # Inicializar generador
 generador.write(':CHANnel1:BASE:WAVe DC')
