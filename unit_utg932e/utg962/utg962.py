@@ -200,14 +200,12 @@ class Utg962:
         )
         if self.inst.query(f":CHAN{channel}:ARB:SOUR?")[:3] != "EXT":
             raise UtgError("Setting ARB can only after at least one waveform is loaded")
-        self.inst.write(
-            f":CHAN{channel}:ARB:IND {arb_index};"
-            + f":CHAN{channel}:BASE:FREQ {frequency};"
-            + f":CHAN{channel}:BASE:LOW {low};"
-            + f":CHAN{channel}:BASE:HIGH {high};"
-            + f":CHAN{channel}:OUTP ON;"
-            + f":SYSTEM:LOCK OFF"
-        )
+        self.inst.write(f":CHAN{channel}:ARB:IND {arb_index}")
+        self.inst.write(f":CHAN{channel}:BASE:FREQ {frequency}")
+        self.inst.write(f":CHAN{channel}:BASE:LOW {low}")
+        self.inst.write(f":CHAN{channel}:BASE:HIGH {high}")
+        self.inst.write(f":CHAN{channel}:OUTP ON")
+        self.inst.write(":SYSTEM:LOCK OFF")
 
     def set_ramp(
         self, channel: int, frequency: float, low: float, high: float, symmetry: float
@@ -216,15 +214,13 @@ class Utg962:
         self._validate_channel(channel)
         self._validate_frequency(400e3, frequency)
         self._validate_symmetry(symmetry)
-        self.inst.write(
-            f":CHAN{channel}:BASE:WAV RAMP;"
-            + f":CHAN{channel}:BASE:FREQ {frequency};"
-            + f":CHAN{channel}:BASE:LOW {low};"
-            + f":CHAN{channel}:BASE:HIGH {high};"
-            + f":CHAN{channel}:RAMP:SYMM {symmetry};"
-            + f":CHAN{channel}:OUTP ON;"
-            + f":SYSTEM:LOCK OFF"
-        )
+        self.inst.write(f":CHAN{channel}:BASE:WAV RAMP")
+        self.inst.write(f":CHAN{channel}:BASE:FREQ {frequency}")
+        self.inst.write(f":CHAN{channel}:BASE:LOW {low}")
+        self.inst.write(f":CHAN{channel}:BASE:HIGH {high}")
+        self.inst.write(f":CHAN{channel}:RAMP:SYMM {symmetry}")
+        self.inst.write(f":CHAN{channel}:OUTP ON")
+        self.inst.write(":SYSTEM:LOCK OFF")
 
     def set_sine(self, channel: int, frequency: float, low: float, high: float) -> None:
         """Set a channel to a sine wave and enable the output."""
@@ -248,15 +244,14 @@ class Utg962:
         """Set a channel to a square wave and enable the output."""
         self._validate_channel(channel)
         self._validate_frequency(20e6, frequency)
-        self.inst.write(
-            f":CHAN{channel}:BASE:WAV SQU;"
-            + f":CHAN{channel}:BASE:FREQ {frequency};"
-            + f":CHAN{channel}:BASE:LOW {low};"
-            + f":CHAN{channel}:BASE:HIGH {high};"
-            + f":CHAN{channel}:BASE:DUTY {duty_cycle};"
-            + f":CHAN{channel}:OUTP ON;"
-            + f":SYSTEM:LOCK OFF"
-        )
+        self.inst.write(f":CHAN{channel}:BASE:WAV SQU")
+        self.inst.write(f":CHAN{channel}:BASE:FREQ {frequency}")
+        self.inst.write(f":CHAN{channel}:BASE:LOW {low}")
+        self.inst.write(f":CHAN{channel}:BASE:HIGH {high}")
+        self.inst.write(f":CHAN{channel}:BASE:DUTY {duty_cycle}")
+        self.inst.write(f":CHAN{channel}:OUTP ON")
+        self.inst.write(":SYSTEM:LOCK OFF")
+
     def set_dc(self, channel: int, dc: float) -> None:
         """Set a channel to a DC and enable the output."""
         self._validate_channel(channel)
