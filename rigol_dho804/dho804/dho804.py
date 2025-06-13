@@ -25,25 +25,36 @@ class AdbBridge:
         """Verifica si el dispositivo sigue conectado."""
         resultado = subprocess.run(["adb", "devices"], capture_output=True, text=True)
         return self.ip_puerto.split(":")[0] in resultado.stdout
+
+    def touch_center(self):
+        subprocess.run(["adb", "shell", "input", "tap", str(512), str(300)])
+        
     def adb_disconnect(self):
-        self.subprocess.run(["adb", "disconnect", self.ip_puerto], capture_output=True, text=True)
+        subprocess.run(["adb", "disconnect", self.ip_puerto], capture_output=True, text=True)
 
 class DHO804:
     def __init__(self,ip,adbport):
         self.ip = ip
         self.adb_bridge = AdbBridge(ip + ':' + adbport)
-        self.rm = pyvisa.ResourceManager()       
+        self.rm = pyvisa.ResourceManager()    
+
     def connect(self):
         """Conecta interfaz ADB y SPCI"""
         self.adb_bridge.conectar()
-        self.scpi_bridge = rm.open_resource(f'TCPIP::{ip}::INSTR')
+        self.scpi_bridge = self.rm.open_resource(f'TCPIP::{self.ip}::INSTR')
         self.scpi_bridge.write_termination = '\n'
         self.scpi_bridge.read_termination = '\n'
-    def take_screenshot():
-        if (adb_bridge.esta_conectado()):
+
+    def take_screenshot(self):
+        if (self.adb_bridge.esta_conectado()):
             self.adb_bridge.tomar_captura()
         else:
             return 0
+
+    def auto_set(self):
+        self.scpi_bridge.write(":AUToset")
+        self.adb_bridge.touch_center()
+
     def close(self):
         self.scpi_bridge.close()
         self.rm.close()
