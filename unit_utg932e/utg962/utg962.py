@@ -230,14 +230,12 @@ class Utg962:
         """Set a channel to a sine wave and enable the output."""
         self._validate_channel(channel)
         self._validate_frequency(60e6, frequency)
-        self.inst.write(
-            f":CHAN{channel}:BASE:WAV SIN;"
-            + f":CHAN{channel}:BASE:FREQ {frequency};"
-            + f":CHAN{channel}:BASE:LOW {low};"
-            + f":CHAN{channel}:BASE:HIGH {high};"
-            + f":CHAN{channel}:OUTP ON;"
-            + f":SYSTEM:LOCK OFF"
-        )
+        self.inst.write(f":CHAN{channel}:BASE:WAV SIN")
+        self.inst.write(f":CHAN{channel}:BASE:FREQ {frequency}")
+        self.inst.write(f":CHAN{channel}:BASE:LOW {low}")
+        self.inst.write(f":CHAN{channel}:BASE:HIGH {high}")
+        self.inst.write(f":CHAN{channel}:OUTP ON")
+        self.inst.write(":SYSTEM:LOCK OFF")
 
     def set_square(
         self,
@@ -259,6 +257,12 @@ class Utg962:
             + f":CHAN{channel}:OUTP ON;"
             + f":SYSTEM:LOCK OFF"
         )
+    def set_dc(self, channel: int, dc: float) -> None:
+        """Set a channel to a DC and enable the output."""
+        self._validate_channel(channel)
+        self.inst.write(f':CHAN{channel}:BASE:WAVe DC')
+        self.inst.write(f':CHAN{channel}:BASE:OFFSet {dc:.3f}')
+        self.inst.write(f":CHAN{channel}:OUTP ON")
 
     def set_output(self, channel: int, on: bool) -> None:
         """Enable or disable the output of a channel."""
