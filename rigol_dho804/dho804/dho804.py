@@ -55,6 +55,26 @@ class DHO804:
         self.scpi_bridge.write(":AUToset")
         self.adb_bridge.touch_center()
 
+    def measure_avg(self, ch: int):
+        if(self._validate_channel):
+            return float(self.scpi_bridge.query(f':MEASure:VAVG? CHANnel{ch}'))
+        else:
+            pass
+    
+    def measure_amp(self, ch: int):
+        if(self._validate_channel):
+            return float(self.scpi_bridge.query(f':MEASure:VAMP? CHANnel{ch}'))
+        else:
+            pass
+    def measure_rms(self, ch: int):
+        if(self._validate_channel):
+            return float(self.scpi_bridge.query(f':MEASure:VRMS? CHANnel{ch}'))
+        else:
+            pass
+
+    def _validate_channel(self,ch:int):
+        return (ch > 0 and ch <=5)
+
     def close(self):
         self.scpi_bridge.close()
         self.rm.close()
