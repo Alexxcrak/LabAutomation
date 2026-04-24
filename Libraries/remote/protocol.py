@@ -23,8 +23,8 @@ def _encode(obj):
         return {"__type__": "decimal", "value": str(obj)}
     if isinstance(obj, decimal.Overflow):
         return {"__type__": "decimal_overflow"}
-    if isinstance(obj, bytes):
-        return {"__type__": "bytes", "value": obj.hex()}
+    if isinstance(obj, (bytes, bytearray)):
+        return {"__type__": "bytes", "value": bytes(obj).hex()}
     if hasattr(obj, "_data") and hasattr(obj, "mode"):
         # Mediciones del UT61E+: serializamos todas las keys del _data
         return {
