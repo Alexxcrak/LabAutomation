@@ -17,28 +17,31 @@ Algunos submódulos incluyen sus propios archivos `requirements.txt` para depend
 
 ## Estructura del repositorio
 
-- **capturador.py** – clase para realizar capturas de pantalla en un dispositivo Android mediante ADB.
-- **diodetracer.py** – realiza un barrido de tensión en un diodo y guarda la curva I-V en CSV utilizando comandos SCPI.
-- **instrumentos.py** – muestra los dispositivos detectados por PyVISA.
-- **leer_valor.py** – ejemplo básico para leer una medida del multímetro UT61E+.
-- **rigol_dho804/** – scripts relacionados con el osciloscopio Rigol DHO804 (ej. `screenshotrigol.py`).
-- **unit_ut61eplus/** – módulo para comunicarse con el multímetro UNI-T UT61E+ y utilidades asociadas.
-- **unit_utg932e/** – implementa controles para el generador de funciones UNI-T UTG932E/UTG962E.
+```
+Libraries/
+├── rigol_dho804/dho804/        # osciloscopio Rigol DHO804 (SCPI por TCPIP + ADB)
+├── unit_ut61eplus/ut61eplus/   # multímetro UNI-T UT61E+ (USB HID, chip CP2110)
+└── unit_utg932e/               # generador UNI-T UTG932E/UTG962E (PyVISA USB)
+examples/                        # scripts de medición que usan los wrappers
+```
 
-Cada carpeta contiene ejemplos y, en algunos casos, un README específico con más detalles.
+Cada wrapper expone una clase principal (`DHO804`, `UT61EPLUS`, `Utg962`). Algunos subdirectorios contienen su propio `Examples/` con usos específicos del instrumento.
 
 ## Uso rápido
 
-Consulta los README de cada subdirectorio para instrucciones específicas. Por ejemplo, para capturar un valor con el multímetro UT61E+:
+Los ejemplos de la carpeta `examples/` importan los wrappers con rutas relativas a `Libraries/`, así que hay que agregar esa carpeta al `PYTHONPATH`:
 
 ```bash
-python leer_valor.py
+export PYTHONPATH="$PWD/Libraries"
+python examples/leer_valor.py
 ```
 
-Para trazar la curva de un diodo:
+El patrón de import es consistente entre los tres wrappers:
 
-```bash
-python diodetracer.py --output medicion.csv --vmin 0 --vmax 1 --step 0.05
+```python
+from rigol_dho804.dho804 import DHO804
+from unit_ut61eplus.ut61eplus import UT61EPLUS
+from unit_utg932e.utg962 import Utg962
 ```
 
 ## Requisitos de hardware
