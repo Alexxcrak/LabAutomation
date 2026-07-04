@@ -11,7 +11,7 @@ import decimal
 import json
 
 
-DEFAULT_HOST = "192.168.68.115"
+DEFAULT_HOST = "192.168.68.108"
 DEFAULT_PORT = 5555
 
 DEVICE_UTG932E = "utg932e"

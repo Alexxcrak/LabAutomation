@@ -18,6 +18,7 @@ Métodos soportados (ejecutados remotamente):
 
 import os
 import socket
+import time
 
 from remote.protocol import (
     DEFAULT_HOST,
@@ -35,11 +36,38 @@ class UtgError(Exception):
 
 
 class Utg962:
-    def __init__(self, host=None, port=None, timeout=10.0):
-        host = host or os.environ.get("LAB_HOST", DEFAULT_HOST)
-        port = int(port or os.environ.get("LAB_PORT", DEFAULT_PORT))
-        sock = socket.create_connection((host, port), timeout=timeout)
-        self._line = LineSocket(sock)
+    def __init__(self, host=None, port=None, timeout=20.0):
+        self._host = host or os.environ.get("LAB_HOST", DEFAULT_HOST)
+        self._port = int(port or os.environ.get("LAB_PORT", DEFAULT_PORT))
+        self._timeout = timeout
+        self._line = None
+        self._connect()
+
+    def _connect(self):
+        """(Re)abre el socket al server de la Pi con keepalive, reintentando con backoff.
+
+        El power-save del WiFi de la Pi corta conexiones TCP ociosas y mientras la
+        radio despierta puede rechazar o timeoutear la conexión. Reintentar cubre
+        tanto la conexión inicial (`__init__`) como las reconexiones de `_call`. El
+        keepalive mantiene vivo el flujo durante los segundos ociosos de baja frec.
+        """
+        last = None
+        for attempt in range(6):
+            if attempt:
+                time.sleep(min(attempt, 4))
+            try:
+                sock = socket.create_connection((self._host, self._port), timeout=self._timeout)
+                sock.settimeout(self._timeout)
+                sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                if hasattr(socket, "TCP_KEEPIDLE"):
+                    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 2)
+                    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 2)
+                    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
+                self._line = LineSocket(sock)
+                return
+            except (ConnectionError, TimeoutError, OSError) as e:
+                last = e
+        raise last
 
     def close(self) -> None:
         """Cierra solo la conexión TCP; el instrumento en la Pi queda disponible."""
@@ -58,14 +86,37 @@ class Utg962:
         )
 
     def _call(self, method, *args, **kwargs):
-        self._line.send_line(encode_request(DEVICE_UTG932E, method, args, kwargs))
+        req = encode_request(DEVICE_UTG932E, method, args, kwargs)
+        last = None
+        for attempt in range(3):
+            try:
+                if attempt:
+                    # el WiFi de la Pi tiene power-save: reconectar (con backoff
+                    # propio) y reintentar el comando si la conexión ociosa se cayó.
+                    self._reconnect()
+                return self._send_recv(req)
+            except (ConnectionError, TimeoutError, OSError) as e:
+                last = e
+        raise last
+
+    def _send_recv(self, req):
+        self._line.send_line(req)
         line = self._line.recv_line()
+        if not line:
+            raise ConnectionError("El server cerró la conexión")
         try:
             return decode_response(line)
         except RemoteError as e:
             if e.error_type == "UtgError":
                 raise UtgError(e.message) from None
             raise
+
+    def _reconnect(self):
+        try:
+            self._line.close()
+        except Exception:
+            pass
+        self._connect()
 
     def __getattr__(self, name):
         if name.startswith("_"):
